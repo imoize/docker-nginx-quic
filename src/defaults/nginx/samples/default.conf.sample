@@ -25,16 +25,17 @@ server {
 
     # include more config
     include /config/nginx/conf.d/ssl.conf;
-    include /config/nginx/conf.d/brotli.conf;
+    # include /config/nginx/conf.d/headers.conf;
 
     # http3
     add_header Alt-Svc 'h3=":443"; ma=86400';
 
+    # security config
+    include /config/nginx/conf.d/block-exploits.conf;
+
     location / {
         try_files $uri $uri/ =404;
     }
-
-    include /config/nginx/conf.d/block-exploits.conf;
 
     # deny access to .htaccess/.htpasswd files
     location ~ /\.ht {

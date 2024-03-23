@@ -1,4 +1,4 @@
 brotli on;
 brotli_types *;
-brotli_comp_level 4;
+brotli_comp_level 5;
 brotli_static on;
