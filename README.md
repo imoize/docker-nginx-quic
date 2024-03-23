@@ -186,8 +186,8 @@ server {
 
     server_name YOUR-DOMAIN;
 
-    # include more config
-    include /config/nginx/conf.d/headers.conf; #add this
+    # uncomment
+    include /config/nginx/conf.d/headers.conf;
 ```
 
 2. By default this image using self-signed certificate, Edit config in /config/nginx/conf.d/ssl.conf, don't forget to replace YOUR-DOMAIN. should look like this : 
