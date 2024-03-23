@@ -1,0 +1,43 @@
+server {
+    listen      80 default_server;
+    listen [::]:80 default_server;
+
+    server_name _;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen      443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    listen      443 quic default_server;
+    listen [::]:443 quic default_server;
+
+    server_name _;
+
+    root /defaults/www;
+    index index.html index.htm;
+
+    # set access log
+    access_log /config/log/nginx/access.log;
+
+    # include more config
+    include /config/nginx/conf.d/ssl.conf;
+    include /config/nginx/conf.d/brotli.conf;
+
+    # http3
+    add_header Alt-Svc 'h3=":443"; ma=86400';
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    include /config/nginx/conf.d/block-exploits.conf;
+
+    # deny access to .htaccess/.htpasswd files
+    location ~ /\.ht {
+        deny all;
+    }
+}

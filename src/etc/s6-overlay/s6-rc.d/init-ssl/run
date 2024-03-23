@@ -1,0 +1,15 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+
+# Load Generic Libraries
+. /defaults/scripts/liblog.sh
+
+echo "$info ==> -- Starting Certs setup --"
+SUBJECT="/C=US/ST=CA/L=Carlsbad/O=*/OU=*/CN=*"
+if [[ ! -f /config/ssl/self-signed/cert.key && ! -f /config/ssl/self-signed/cert.crt ]]; then
+    echo "$info ==> Create self-signed cert in /config/ssl/self-signed"
+    rm -f \
+        /config/ssl/self-signed/cert.key \
+        /config/ssl/self-signed/cert.crt || true
+    openssl req -new -x509 -days 3650 -nodes -out /config/ssl/self-signed/cert.crt -keyout /config/ssl/self-signed/cert.key -subj "$SUBJECT"
+fi

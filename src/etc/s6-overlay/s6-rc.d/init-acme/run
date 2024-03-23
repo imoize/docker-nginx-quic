@@ -1,0 +1,32 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+
+# Load Generic Libraries
+. /defaults/scripts/liblog.sh
+
+echo "$info ==> -- Starting ACME.sh setup --"
+
+# Install acme.sh
+if [[ ! -f /config/acme.sh/account.conf || ! -f /usr/local/acme.sh/acme.sh ]] then
+    echo "$info ==> Installing acme.sh..."
+    curl -sS https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh | sh -s -- \
+        --install-online \
+        --home /usr/local/acme.sh \
+        --config-home /config/acme.sh \
+        --auto-upgrade 0 \
+        --no-cron
+
+    # Set acme.sh aliases
+    ln -s /usr/local/acme.sh/acme.sh /usr/local/bin/acme.sh
+
+    # Set default CA server to letsencrypt
+    acme.sh --set-default-ca --server letsencrypt
+fi
+
+# set cronjob
+if [[ ! -f /config/crontabs/root ]]; then
+	cp /defaults/root /config/crontabs/root
+fi
+
+# copy cronjob
+cp /config/crontabs/root /etc/crontabs/root

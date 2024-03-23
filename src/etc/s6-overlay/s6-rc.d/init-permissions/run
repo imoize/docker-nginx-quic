@@ -1,0 +1,38 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+
+# create logs file
+if [[ ! -f "/config/log/nginx/access.log" ]]; then
+    touch /config/log/nginx/access.log
+fi
+
+if [[ ! -f "/config/log/nginx/error.log" ]]; then
+    touch /config/log/nginx/error.log
+fi
+
+# permissions
+chown disty:disty \
+    /config/log
+
+chown -R disty:disty \
+    /var/log/nginx \
+    /var/cache/nginx \
+    /defaults/www
+
+chown -R disty:disty \
+    /config/ssl \
+    /config/nginx \
+    /config/crowdsec
+
+chown -R disty:disty \
+    /config/www \
+    /config/log/nginx
+
+chmod -R g+w \
+    /config/nginx
+
+chmod -R 644 /etc/logrotate.d
+
+if [[ -f "/config/log/logrotate.status" ]]; then
+    chmod 600 /config/log/logrotate.status
+fi

@@ -1,0 +1,78 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+
+# Load Generic Libraries
+. /defaults/scripts/liblog.sh
+
+# copy nginx config
+echo "$info ==> -- Starting Nginx setup --"
+copy_conf_if_not_exist() {
+    source_file="$1"
+    target_file="$2"
+
+    if [[ ! -f "$source_file" ]]; then
+        echo "$warn ==> Source file does not exist: ${source_file}"
+        return 1
+    fi
+
+    if [[ ! -f "$target_file" ]]; then
+        echo "$info ==> Copying ${source_file} to ${target_file}..."
+        cp "$source_file" "$target_file"
+    fi
+}
+
+# list of nginx config files to copy
+files_to_copy=(
+    "/defaults/nginx/samples/nginx.conf.sample:/config/nginx/nginx.conf"
+    "/defaults/nginx/samples/default.conf.sample:/config/nginx/site-confs/default.conf"
+    "/defaults/nginx/samples/crowdsec_nginx.conf:/config/nginx/site-confs/crowdsec_nginx.conf"
+    "/defaults/nginx/samples/ssl.conf.sample:/config/nginx/conf.d/ssl.conf"
+    "/defaults/nginx/samples/brotli.conf.sample:/config/nginx/conf.d/brotli.conf"
+    "/defaults/nginx/samples/security.conf.sample:/config/nginx/conf.d/security.conf"
+    "/defaults/nginx/samples/block-exploits.conf.sample:/config/nginx/conf.d/block-exploits.conf"
+)
+
+# copy nginx config files
+for file_mapping in "${files_to_copy[@]}"; do
+    copy_conf_if_not_exist ${file_mapping/:/ }
+done
+
+# copy pre-generated dhparams or generate if needed
+if [[ ! -f /config/ssl/dhparams.pem ]]; then
+    cp /defaults/nginx/dhparams.pem /config/ssl/dhparams.pem
+fi
+if ! grep -q 'PARAMETERS' "/config/ssl/dhparams.pem"; then
+    curl -o /config/ssl/dhparams.pem -L "https://ssl-config.mozilla.org/ffdhe4096.txt"
+fi
+
+# set resolver
+touch /config/nginx/conf.d/resolver.conf
+
+if ! grep -q 'resolver' /config/nginx/conf.d/resolver.conf; then
+    RESOLVERRAW=$(awk 'BEGIN{ORS=" "} $1=="nameserver" {print $2}' /etc/resolv.conf)
+    for i in ${RESOLVERRAW}; do
+        if [[ "$(awk -F ':' '{print NF-1}' <<<"${i}")" -le 2 ]]; then
+            RESOLVER="${RESOLVER} ${i}"
+        fi
+    done
+    if [[ -z "${RESOLVER}" ]]; then
+        RESOLVER="127.0.0.11"
+    fi
+    echo "$info ==> Set resolver to ${RESOLVER}"
+    RESOLVEROUTPUT="# This file is auto-generated only on first start, based on the container's /etc/resolv.conf file. Feel free to modify it as you wish.\n\nresolver ${RESOLVER} valid=30s;"
+    echo -e "${RESOLVEROUTPUT}" >/config/nginx/conf.d/resolver.conf
+fi
+
+# set worker_processes
+touch /config/nginx/conf.d/worker_processes.conf
+
+if ! grep -q 'worker_processes' /config/nginx/conf.d/worker_processes.conf; then
+    WORKER_PROCESSES=$(nproc)
+    echo "$info ==> Set worker_processes to ${WORKER_PROCESSES}"
+    echo -e "# This file is auto-generated only on first start, based on the cpu cores detected. Feel free to change it to any other number or to auto to let nginx handle it automatically.\n\nworker_processes ${WORKER_PROCESSES};" >/config/nginx/conf.d/worker_processes.conf
+fi
+
+#crowdsec
+if [[ -z "$(find /config/crowdsec -mindepth 1 -maxdepth 1 -type f)" ]]; then
+    cp -r /defaults/crowdsec/* /config/crowdsec/
+fi
