@@ -28,7 +28,7 @@ files_to_copy=(
     "/defaults/nginx/samples/crowdsec_nginx.conf:/config/nginx/site-confs/crowdsec_nginx.conf"
     "/defaults/nginx/samples/ssl.conf.sample:/config/nginx/conf.d/ssl.conf"
     "/defaults/nginx/samples/brotli.conf.sample:/config/nginx/conf.d/brotli.conf"
-    "/defaults/nginx/samples/security.conf.sample:/config/nginx/conf.d/security.conf"
+    "/defaults/nginx/samples/headers.conf.sample:/config/nginx/conf.d/headers.conf"
     "/defaults/nginx/samples/block-exploits.conf.sample:/config/nginx/conf.d/block-exploits.conf"
 )
 
