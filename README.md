@@ -131,7 +131,7 @@ For example: `PUID=1001` and `PGID=1001`, to find yours user `id` and `gid` type
 
 1. Access shell inside container
 ```bash
-docker exec -it nginx bash
+docker exec -it nginx-quic bash
 ```
 
 2. Request new certificate
