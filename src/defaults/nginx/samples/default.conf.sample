@@ -33,6 +33,9 @@ server {
     # security config
     include /config/nginx/conf.d/block-exploits.conf;
 
+    # add brotli
+    include /config/nginx/conf.d/brotli.conf;
+    
     location / {
         try_files $uri $uri/ =404;
     }
